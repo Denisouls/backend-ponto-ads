@@ -1,20 +1,87 @@
-
 let express = require('express');
 let app = express();
 
 const port = 3000;
 
+const sequelize = require('./config/db');
+const Usuario = require('./models/usuario');
+const Ponto = require('./models/ponto');
 
-//app.METHOD(path, callback [, callback ...])
-app.get("/user/:id1-:id2", (req, res) => {
-    res.send("Resposta da rota /teste");
+const cors = require('cors');
+
+
+app.use(express.json());
+app.use(cors());
+
+sequelize.sync({ alter: true })
+    .then(() => {
+        console.log("sync feito com sucesso");
+    })
+    .catch(error => { console.log("deu erro!")
 });
 
-app.post("/rotapost", (req, res) => {
-    res.send("Retorno da rota isando o método post");
-})
+
+//const airton = Usuario.create({ nome: "airton2", email: "airton2.junior@ceub.edu.br", login: "airton2", senha: "123"});
+
+// Rota que recupera todos os usuários do sistema
+app.get('/usuarios', async (req, res) => {
+    
+    const usuarios = await Usuario.findAll();
+    res.json(usuarios);
+});
+
+
+// Rota que recupera um usuário específico
+app.get('/usuario/:id_usuario', async (req, res) => {
+    const id_usuario = req.params.id_usuario;
+
+    const usuario = await Usuario.findAll({
+        where: {
+            id_usuario: id_usuario
+        }
+    });
+
+    res.json(usuario);
+
+});
+
+
+// Rota que adiciona um usuário
+app.post('/usuario', async (req, res) => {
+    
+    const usuario = await Usuario.create({
+        nome: req.body.nome,
+        email: req.body.email,
+        senha: req.body.senha,
+        login: req.body.login
+    });
+
+    res.json(usuario);
+});
 
 
 app.listen(port, () => {
     console.log(`servidor escutando a porta ${port}`);
+});
+
+//Rota que atualiza os usuários
+app.put('/usuario/:id_usuario', async (req,res) => {
+    const usuarioAtualizado = await usuario.update({
+        senha: req.body.senha,
+        login: req.body.login
+    });
+
+    res.json(usuarioAtualizado);
+});
+
+
+
+//Rota que deleta um usuário específico
+app.delete('/usuario/:id_usuario', async (req, res) => {
+
+    const usuario = await Usuario.findByPk(req.params.id_usuario);
+ 
+    usuario.destroy();
+
+    res.send(`Usuario com id ${req.params.id_usuario} removido com sucesso!`)
 });
